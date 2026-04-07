@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# pre-push doc-check
+# Warns if CLAUDE.md may need updating after Python changes.
+# Advisory only — never blocks the push.
+# Skip with: git push --no-verify
+
+BASE="main"
+
+CHANGED_PY=$(git diff "${BASE}...HEAD" --name-only -- 'zeke/*.py' 2>/dev/null || true)
+
+# Nothing to check if no Python files changed
+if [ -z "$CHANGED_PY" ]; then
+  exit 0
+fi
+
+# If docs were also touched in this branch, assume the author handled it
+CHANGED_DOCS=$(git diff "${BASE}...HEAD" --name-only -- 'CLAUDE.md' 'docs/' 2>/dev/null || true)
+if [ -n "$CHANGED_DOCS" ]; then
+  exit 0
+fi
+
+if ! command -v claude &>/dev/null; then
+  echo "[doc-check] 'claude' not in PATH — skipping documentation check" >&2
+  exit 0
+fi
+
+echo "[doc-check] Checking if CLAUDE.md needs updates..." >&2
+
+DIFF=$(git diff "${BASE}...HEAD" -- 'zeke/*.py')
+
+RESULT=$(claude -p "$(cat <<PROMPT
+You are reviewing a git branch before it is pushed. Python files changed but CLAUDE.md was not updated.
+
+Changed Python files:
+${CHANGED_PY}
+
+Diff (Python files only):
+${DIFF}
+
+Read CLAUDE.md in the current directory and determine whether any of these changes:
+- Add or remove CLI commands
+- Change existing command behaviour, flags, or error paths
+- Change module responsibilities
+- Affect architectural rules (output format, scan scope, config path, etc.)
+
+If CLAUDE.md needs updating, list the specific sections and what should change — one bullet per item.
+If CLAUDE.md is already accurate for these changes, respond with exactly: OK
+PROMPT
+)" --output-format text 2>/dev/null)
+
+if [ "$RESULT" = "OK" ]; then
+  echo "[doc-check] Documentation is up to date." >&2
+else
+  echo "" >&2
+  echo "[doc-check] CLAUDE.md may need updating:" >&2
+  echo "$RESULT" >&2
+  echo "" >&2
+  echo "  Update docs in a follow-up commit, or skip with: git push --no-verify" >&2
+fi
+
+exit 0
