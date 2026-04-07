@@ -35,6 +35,9 @@ select = [
     "D",  # pydocstyle (enforces the google convention set below)
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
