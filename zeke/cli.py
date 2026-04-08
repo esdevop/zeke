@@ -221,9 +221,7 @@ def rename(
     # Collision check — any other note already has this slug
     collision = _find_by_slug(new_slug, cfg.notes_dir)
     if collision is not None and collision != note:
-        typer.echo(
-            f"A note with slug {new_slug!r} already exists: {collision}", err=True
-        )
+        typer.echo(f"A note with slug {new_slug!r} already exists: {collision}", err=True)
         raise typer.Exit(1) from None
 
     old_name = note.name
