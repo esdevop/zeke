@@ -407,3 +407,33 @@ def test_missing_notes_dir_exits_1(monkeypatch, tmp_path):
     monkeypatch.setattr("zeke.cli.load_config", lambda: cfg)
     result = runner.invoke(app, ["list"])
     assert result.exit_code == 1
+
+
+# ---------------------------------------------------------------------------
+# zeke config init
+# ---------------------------------------------------------------------------
+
+
+def test_config_init_creates_file(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    result = runner.invoke(app, ["config", "init"])
+    assert result.exit_code == 0
+    config_path = tmp_path / ".config" / "zeke" / "config.toml"
+    assert config_path.exists()
+    assert result.output.strip() == str(config_path)
+
+
+def test_config_init_creates_parent_dir(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    runner.invoke(app, ["config", "init"])
+    assert (tmp_path / ".config" / "zeke").is_dir()
+
+
+def test_config_init_already_exists_exits_1(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    config_path = tmp_path / ".config" / "zeke" / "config.toml"
+    config_path.parent.mkdir(parents=True)
+    config_path.write_text("[notes]\n")
+    result = runner.invoke(app, ["config", "init"])
+    assert result.exit_code == 1
+    assert "already exists" in result.output

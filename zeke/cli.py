@@ -9,7 +9,7 @@ from typing import Annotated, Optional
 import frontmatter
 import typer
 
-from zeke.config import Config, load_config
+from zeke.config import DEFAULT_CONFIG, Config, load_config
 from zeke.links import (
     count_tags,
     extract_tags,
@@ -24,6 +24,8 @@ from zeke.notes import attach as _attach
 from zeke.search import search as _search
 
 app = typer.Typer(help="Stateless CLI for personal knowledge management.")
+config_app = typer.Typer(help="Manage zeke configuration.")
+app.add_typer(config_app, name="config")
 
 
 # ---------------------------------------------------------------------------
@@ -76,6 +78,23 @@ def _resolve_one(query: str, cfg: Config) -> Path:
             typer.echo(str(p), err=True)
         raise typer.Exit(1) from None
     return matches[0]
+
+
+# ---------------------------------------------------------------------------
+# Config sub-commands
+# ---------------------------------------------------------------------------
+
+
+@config_app.command("init")
+def config_init() -> None:
+    """Write an example config to ~/.config/zeke/config.toml."""
+    config_path = Path.home() / ".config" / "zeke" / "config.toml"
+    if config_path.exists():
+        typer.echo(f"Config already exists: {config_path}", err=True)
+        raise typer.Exit(1)
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(DEFAULT_CONFIG, encoding="utf-8")
+    typer.echo(str(config_path))
 
 
 # ---------------------------------------------------------------------------

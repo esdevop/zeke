@@ -46,7 +46,8 @@ The hook warns (but never blocks) if Python files changed without a correspondin
 | File | Responsibility |
 |------|---------------|
 | `zeke/cli.py` | Typer app, all command definitions |
-| `zeke/config.py` | Load `~/.config/zeke/config.toml`; exports a `Config` dataclass |
+| `zeke/config.py` | Load `~/.config/zeke/config.toml`; exports `Config` dataclass and `DEFAULT_CONFIG` string |
+| `examples/config.toml` | Commented example config for repo reference (mirrors `DEFAULT_CONFIG`) |
 | `zeke/ids.py` | `generate_id()` with collision check across notes/ and assets/ |
 | `zeke/notes.py` | Note creation, frontmatter schema, `zeke attach` |
 | `zeke/links.py` | Markdown link parsing, backlinks, orphans, broken links, rename, tags |
@@ -91,3 +92,5 @@ The hook warns (but never blocks) if Python files changed without a correspondin
 **`zeke broken` (no args):** lists notes containing at least one broken Markdown link — one path per line. **`zeke broken <id-or-slug>`:** lists the broken link paths (e.g. `a1b2c3--missing.md`) inside that specific note, one per line; exit 0 with empty output if all links valid.
 
 **`zeke attach`:** copies image to `notes/assets/{image-ID}--{original_name}`. Prints relative path (`assets/…`). Auto-creates `assets/` if missing. Does not modify any note body.
+
+**`zeke config init`:** writes `DEFAULT_CONFIG` from `zeke/config.py` to `~/.config/zeke/config.toml`. Creates parent directory if needed. Exits 1 if the file already exists (no silent overwrites). Does not call `load_config()` — safe to run before any config exists.

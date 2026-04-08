@@ -20,14 +20,22 @@ The `zeke` command is available via `uv run zeke` or after activating the virtua
 
 ## Configuration
 
-Optional config file at `~/.config/zeke/config.toml`:
+Run once after installation to create a starter config:
+
+```bash
+zeke config init
+```
+
+This writes `~/.config/zeke/config.toml`. Edit it as needed:
 
 ```toml
 [notes]
-dir = "/path/to/notes"       # default: ~/notes
-id_length = 6                # default: 6
-types = ["contact", "book"]  # user-defined note types (optional)
+dir = "~/notes"              # where your .md files live (default: ~/notes)
+id_length = 6                # ID length (default: 6)
+types = ["book", "person"]   # custom note types (optional)
 ```
+
+A fully commented example is also available at [`examples/config.toml`](examples/config.toml).
 
 Missing config is silently ignored and defaults apply.
 

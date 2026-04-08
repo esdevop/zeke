@@ -6,6 +6,21 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
+DEFAULT_CONFIG: str = """\
+# zeke configuration
+# Place this file at: ~/.config/zeke/config.toml
+
+[notes]
+# Directory where your notes are stored (default: ~/notes)
+dir = "~/notes"
+
+# Length of generated note IDs (default: 6)
+id_length = 6
+
+# Custom note types in addition to the built-in "note" and "journal"
+# types = ["book", "person", "contact"]
+"""
+
 _CONFIG_PATH = Path.home() / ".config" / "zeke" / "config.toml"
 _RESERVED_TYPES = {"note", "journal"}
 
