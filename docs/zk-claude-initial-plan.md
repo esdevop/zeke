@@ -11,7 +11,7 @@ Personal knowledge management setup designed for **longevity** (years of use, mi
 
 The Python CLI is the piece to design and build. It must treat **Markdown files as the source of truth** — portable and readable regardless of whether the app exists. This means:
 - The CLI reads files fresh on every command; no persistent database or index
-- All state lives inside the `.md` files themselves (frontmatter + wikilinks)
+- All state lives inside the `.md` files themselves (frontmatter + Markdown links)
 - Any tool (NeoVim, a browser, a future replacement) always sees the same state
 - Search shells out to ripgrep — no cache needed
 
@@ -53,7 +53,7 @@ Example: `a1b2c3--zettelkasten-principles.md`
 
 Double hyphen (`--`) is the block separator between ID and slug. This keeps blocks unambiguous and leaves room for future extensions (e.g. `{id}--{type}--{slug}`).
 
-The ID is embedded in the filename, making it the stable anchor for links. Renaming the human-readable slug does not break links.
+The ID is embedded in the filename, making note identity stable across renames. `zeke rename` rewrites all Markdown link paths automatically — manual file renames without the CLI will leave dangling links (detectable via `zeke broken`).
 
 ### Slug Generation
 Slugs are derived from titles using the following rules, in order:
@@ -137,24 +137,24 @@ def generate_id(length=6):
 
 Collision check is mandatory — the generated ID must not already exist before writing any file.
 
-Note and image IDs are generated from the same pool but **do not technically need to be unique across both spaces** — note links `[[a1b2c3]]` resolve against `.md` files in `notes/`, while image references `![](assets/a1b2c3--screenshot.png)` are direct file paths. The two spaces never intersect at runtime. Scanning both directories during generation is a stylistic/organizational choice, not a technical requirement.
+Note and image IDs are generated from the same pool but **do not technically need to be unique across both spaces** — note links `[Title](a1b2c3--slug.md)` resolve against `.md` files in `notes/`, while image references `![](assets/a1b2c3--screenshot.png)` are direct file paths. The two spaces never intersect at runtime. Scanning both directories during generation is a stylistic/organizational choice, not a technical requirement.
 
 ### Link Format
 All links are equal — no special "up/down" link types. Directionality is expressed only by placement convention (e.g. parent links at top, child links at bottom), not by syntax.
 
-`[[a1b2c3--zettelkasten-principles]]` — resolves by partial filename match against the ID prefix.  
-Using just `[[a1b2c3]]` also works (partial match). Both are valid.
+Links use standard Markdown syntax with a relative path matching the literal filename:
 
-**Resolution rule:** a wikilink `[[ref]]` matches a file whose stem starts with `ref + "--"` or equals `ref` exactly:
-```python
-def resolves(ref: str, stem: str) -> bool:
-    return stem.startswith(ref + '--') or stem == ref
 ```
-The double-hyphen separator makes resolution unambiguous — no risk of a short ID matching a longer one as a prefix.
+[Zettelkasten Principles](a1b2c3--zettelkasten-principles.md)
+```
 
-Links are inserted **manually** by the user while editing in NeoVim. The CLI does not auto-insert links into note bodies.
+The path in `(...)` is the literal filename — no resolution logic needed in the parser. The `--` separator in the filename keeps IDs and slugs unambiguous.
 
-**GitHub web note:** `[[wikilinks]]` are not standard Markdown. GitHub web renders them as `[link]` — visible and clickable, sufficient for read access on mobile. Full graph navigation remains a desktop/CLI concern.
+CLI commands (`zeke open`, `zeke backlinks`, `zeke rename`, etc.) accept an `id-or-slug` argument for resolution against filenames. The link format itself always uses the full filename as the path.
+
+Links are inserted **manually** by the user while editing in NeoVim (e.g. via a fuzzy picker over note titles that inserts the formatted link). The CLI does not auto-insert links into note bodies.
+
+**GitHub web:** Standard Markdown links render as native clickable `<a>` tags — fully navigable on mobile without any special tooling.
 
 ---
 
@@ -244,10 +244,10 @@ zeke orphans
 # Notes with no incoming or outgoing links — one absolute path per line
 
 zeke broken
-# Lists all notes containing at least one broken wikilink — one absolute path per line
+# Lists all notes containing at least one broken Markdown link — one absolute path per line
 
 zeke broken <id-or-slug>
-# Lists broken wikilinks inside a specific note — one [[link]] per line
+# Lists broken link paths inside a specific note — one filename per line (e.g. a1b2c3--missing.md)
 # Empty output (exit 0) if all links in that note are valid
 
 # Broken links are preserved by design: they signal "something used to be here"
@@ -264,9 +264,9 @@ zeke rename <id-or-slug> <new-title>
 # 3. New filename: a1b2c3--graph-theory-advanced.md  (ID unchanged)
 # 4. Update title: field in the note's own frontmatter → "Graph Theory Advanced"
 # 5. Rename file
-# 6. Update [[a1b2c3--graph-theory]] → [[a1b2c3--graph-theory-advanced]] across all notes
-# 7. Leave [[a1b2c3]] links untouched — they still resolve correctly
-# Uses regex \[\[...\]\] matching — no false positives on plain body text
+# 6. Rewrite (a1b2c3--graph-theory.md) → (a1b2c3--graph-theory-advanced.md) in Markdown links
+#    across all notes; display text [Title] is left untouched (user-controlled)
+# Uses lookbehind/lookahead on parentheses — no false positives on plain body text
 
 zeke tags
 # Lists all unique tags across all notes — one per line, alphabetical order
@@ -309,7 +309,7 @@ No `editor` field — the CLI does not open an editor.
 ## Mobile Access (GitHub Web)
 
 - Notes render as standard Markdown in the browser
-- `[[wikilinks]]` render as `[link]` — visible but not navigable as a graph
+- Markdown links `[Title](id--slug.md)` render as native clickable `<a>` tags — fully navigable
 - Images with relative paths render correctly when committed
 - Sufficient for reading and quick edits; full authoring stays on desktop
 
@@ -332,7 +332,7 @@ Future: thin Lua plugin that calls the CLI and opens returned paths directly in 
 | `zeke/cli.py` | Entry point, CLI command definitions (typer) |
 | `zeke/notes.py` | Note creation, frontmatter schema, image attachment |
 | `zeke/ids.py` | ID generation for notes and images (with collision check) |
-| `zeke/links.py` | Wikilink parsing, backlink/orphan/broken detection, rename, tags |
+| `zeke/links.py` | Markdown link parsing, backlink/orphan/broken detection, rename, tags |
 | `zeke/search.py` | Full-text search via ripgrep |
 | `zeke/config.py` | Config loading from `~/.config/zeke/config.toml` |
 | `pyproject.toml` | Package definition, `zeke` as installable CLI command |
@@ -360,13 +360,13 @@ Future: thin Lua plugin that calls the CLI and opens returned paths directly in 
 17. `zeke list --type note` → filtered list
 18. `zeke list --type contact` (with `types = ["contact"]` in config) → filtered list
 19. `zeke list --type foo` (not configured) → exits 1, lists valid types
-20. Open note on GitHub web → renders correctly, title/tags visible
-21. Add `[[a1b2c3]]` in a note → `zeke backlinks a1b2c3` returns the source note (one path per line)
+20. Open note on GitHub web → renders correctly, title/tags visible; Markdown links are native clickable links
+21. Add `[Test Note](a1b2c3--test-note.md)` in a note → `zeke backlinks a1b2c3` returns the source note (one path per line)
 22. `zeke search "test"` → returns matching top-level .md notes only (one absolute path per line)
 23. `zeke orphans` → new unlinked note appears
-24. Delete a note manually → `zeke broken` lists the note(s) containing its wikilink
-25. `zeke broken <id>` → lists only the broken `[[links]]` inside that specific note; empty output + exit 0 if all links valid
-26. `zeke rename a1b2c3--test-note "Test Note Advanced"` → filename becomes `a1b2c3--test-note-advanced.md`, frontmatter `title:` updated to "Test Note Advanced", `[[a1b2c3--test-note]]` updated across all notes, `[[a1b2c3]]` links untouched
+24. Delete a note manually → `zeke broken` lists the note(s) containing a Markdown link to the deleted file
+25. `zeke broken <id>` → lists only the broken link paths inside that specific note (e.g. `a1b2c3--deleted.md`); empty output + exit 0 if all links valid
+26. `zeke rename a1b2c3--test-note "Test Note Advanced"` → filename becomes `a1b2c3--test-note-advanced.md`, frontmatter `title:` updated to "Test Note Advanced", `(a1b2c3--test-note.md)` rewritten to `(a1b2c3--test-note-advanced.md)` across all notes
 27. `zeke rename a1b2c3--test-note "!!!"` → exits 1, empty slug error
 28. `zeke rename a1b2c3--test-note "Existing Note"` where slug `existing-note` already belongs to another note → exits 1 with conflicting path
 29. `zeke tags` → lists all unique tags, one per line, alphabetical order

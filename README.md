@@ -47,7 +47,7 @@ zeke list --tag knowledge-management
 zeke search "zettelkasten"               # full-text search via ripgrep
 zeke backlinks a1b2c3                    # notes that link to this note
 zeke orphans                             # notes with no incoming or outgoing links
-zeke broken                              # notes containing broken wikilinks
+zeke broken                              # notes containing broken links
 zeke broken a1b2c3                       # broken links inside a specific note
 
 zeke rename a1b2c3 "New Title"           # rename note and update all links
@@ -78,7 +78,7 @@ tags: [mathematics, cs]
 created: 2026-04-07
 ---
 
-Note body. Links use wikilink syntax: [[b4c5d6--another-note]] or just [[b4c5d6]].
+Note body. Links use standard Markdown: [Another Note](b4c5d6--another-note.md)
 ```
 
 ## Development

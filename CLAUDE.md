@@ -49,7 +49,7 @@ The hook warns (but never blocks) if Python files changed without a correspondin
 | `zeke/config.py` | Load `~/.config/zeke/config.toml`; exports a `Config` dataclass |
 | `zeke/ids.py` | `generate_id()` with collision check across notes/ and assets/ |
 | `zeke/notes.py` | Note creation, frontmatter schema, `zeke attach` |
-| `zeke/links.py` | Wikilink parsing, backlinks, orphans, broken links, rename, tags |
+| `zeke/links.py` | Markdown link parsing, backlinks, orphans, broken links, rename, tags |
 | `zeke/search.py` | Full-text search via `rg` subprocess |
 
 ## Architecture
@@ -82,12 +82,12 @@ The hook warns (but never blocks) if Python files changed without a correspondin
 
 **`zeke journal`** only accepts `YYYY-MM-DD`. Any other format or invalid calendar value → exit 1. Human-readable title in frontmatter ("April 5, 2026"); filename/slug use the date string as-is.
 
-**Wikilink resolution:** `[[ref]]` matches a file whose stem starts with `ref + '--'` or equals `ref` exactly. Both `[[a1b2c3]]` and `[[a1b2c3--graph-theory]]` are valid and resolve the same note.
+**Link format:** `[Title](a1b2c3--slug.md)` — standard Markdown links with a relative path matching the literal filename. CLI commands (`zeke open`, `zeke backlinks`, etc.) still accept an `id-or-slug` argument for resolution; the link format itself uses the full filename.
 
-**`zeke rename`** flow: resolve note → derive new slug → check no slug collision → rename file → update `title:` frontmatter → rewrite `[[{id}--{old-slug}]]` links across all notes. Short `[[{id}]]` links are left untouched (still resolve correctly).
+**`zeke rename`** flow: resolve note → derive new slug → check no slug collision → rename file → update `title:` frontmatter → rewrite `(a1b2c3--old-slug.md)` link paths across all notes. Display text `[Title]` is not auto-updated (user-controlled).
 
 **`zeke open` / first arg of `zeke rename`**: 0 matches → exit 1 with message to stderr; multiple matches → exit 1 + list all candidates to stderr.
 
-**`zeke broken` (no args):** lists notes containing at least one broken wikilink — one path per line. **`zeke broken <id-or-slug>`:** lists the broken `[[links]]` inside that specific note, one per line; exit 0 with empty output if all links valid.
+**`zeke broken` (no args):** lists notes containing at least one broken Markdown link — one path per line. **`zeke broken <id-or-slug>`:** lists the broken link paths (e.g. `a1b2c3--missing.md`) inside that specific note, one per line; exit 0 with empty output if all links valid.
 
 **`zeke attach`:** copies image to `notes/assets/{image-ID}--{original_name}`. Prints relative path (`assets/…`). Auto-creates `assets/` if missing. Does not modify any note body.
