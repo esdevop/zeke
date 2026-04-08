@@ -1,3 +1,5 @@
+"""Markdown link parsing, backlink/orphan/broken detection, rename, and tags."""
+
 from __future__ import annotations
 
 import re
