@@ -32,7 +32,12 @@ def resolve(query: str, notes_dir: Path) -> list[Path]:
     - ``stem == query`` — exact full stem (e.g. ``a1b2c3--graph-theory``)
     - ``stem.startswith(query + "--")`` — ID prefix (e.g. ``a1b2c3``)
     - ``"--" in stem`` and ``query`` appears in the slug portion of the stem
+
+    A ``.md`` suffix in query is stripped before matching, so passing the
+    full filename (e.g. ``a1b2c3--graph-theory.md``) works too.
     """
+    if query.endswith(".md"):
+        query = query[:-3]
     results = []
     for p in sorted(notes_dir.glob("*.md")):
         stem = p.stem
