@@ -80,14 +80,14 @@ def create_note(title: str, type_: str, cfg: Config) -> Path:
     path = cfg.notes_dir / filename
 
     post = frontmatter.Post(
-        content="",
+        content=f"# {title}",
         id=note_id,
         type=type_,
         title=title,
         tags=[],
         created=datetime.date.today().isoformat(),
     )
-    path.write_text(frontmatter.dumps(post), encoding="utf-8")
+    path.write_text(frontmatter.dumps(post) + "\n\n", encoding="utf-8")
     return path
 
 
@@ -114,14 +114,14 @@ def create_journal(date_str: str, cfg: Config) -> Path:
     path = cfg.notes_dir / filename
 
     post = frontmatter.Post(
-        content="",
+        content=f"# {title}",
         id=note_id,
         type="journal",
         title=title,
         tags=[],
         created=date_str,
     )
-    path.write_text(frontmatter.dumps(post), encoding="utf-8")
+    path.write_text(frontmatter.dumps(post) + "\n\n", encoding="utf-8")
     return path
 
 

@@ -127,6 +127,12 @@ def test_create_note_duplicate_type_agnostic(notes_dir):
     assert p1 == p2
 
 
+def test_create_note_has_h1_heading(notes_dir):
+    cfg = Config(notes_dir=notes_dir)
+    path = create_note("Graph Theory", "note", cfg)
+    assert "# Graph Theory\n\n" in path.read_text()
+
+
 def test_create_note_empty_slug_raises(notes_dir):
     cfg = Config(notes_dir=notes_dir)
     with pytest.raises(ValueError, match="empty slug"):
@@ -179,6 +185,12 @@ def test_create_journal_duplicate_returns_existing(notes_dir):
     p2 = create_journal("2026-04-05", cfg)
     assert p1 == p2
     assert len(list(notes_dir.glob("*.md"))) == 1
+
+
+def test_create_journal_has_h1_heading(notes_dir):
+    cfg = Config(notes_dir=notes_dir)
+    path = create_journal("2026-04-05", cfg)
+    assert "# 5 April 2026\n\n" in path.read_text()
 
 
 def test_create_journal_invalid_format_raises(notes_dir):
