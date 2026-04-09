@@ -81,7 +81,7 @@ The hook warns (but never blocks) if Python files changed without a correspondin
 
 **Duplicate detection** (`zeke new`): slug-only match, type-agnostic. If any existing note has the same slug, print its path and exit without creating.
 
-**`zeke journal`** only accepts `YYYY-MM-DD`. Any other format or invalid calendar value → exit 1. Human-readable title in frontmatter ("April 5, 2026"); filename/slug use the date string as-is.
+**`zeke journal`** only accepts `YYYY-MM-DD`. Any other format or invalid calendar value → exit 1. Human-readable title in frontmatter ("5 April 2026"); filename/slug use the date string as-is.
 
 **Link format:** `[Title](a1b2c3--slug.md)` — standard Markdown links with a relative path matching the literal filename. CLI commands (`zeke open`, `zeke backlinks`, etc.) still accept an `id-or-slug` argument for resolution; the link format itself uses the full filename.
 

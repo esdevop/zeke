@@ -86,6 +86,8 @@ tags: [mathematics, cs]
 created: 2026-04-07
 ---
 
+# Graph Theory
+
 Note body. Links use standard Markdown: [Another Note](b4c5d6--another-note.md)
 ```
 
